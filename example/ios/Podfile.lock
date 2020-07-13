@@ -1,0 +1,31 @@
+PODS:
+  - AliPlayerSDK_iOS (5.1.2):
+    - AliPlayerSDK_iOS/AliPlayerSDK (= 5.1.2)
+  - AliPlayerSDK_iOS/AliPlayerSDK (5.1.2)
+  - Flutter (1.0.0)
+  - player (0.0.1):
+    - AliPlayerSDK_iOS
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - player (from `.symlinks/plugins/player/ios`)
+
+SPEC REPOS:
+  trunk:
+    - AliPlayerSDK_iOS
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  player:
+    :path: ".symlinks/plugins/player/ios"
+
+SPEC CHECKSUMS:
+  AliPlayerSDK_iOS: 535b2c8525e6ec5fb9bcb4d5fd75eda9e3ec0763
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  player: 0d43d681e63af747cccfb423a5b6b9c84eed3286
+
+PODFILE CHECKSUM: c34e2287a9ccaa606aeceab922830efb9a6ff69a
+
+COCOAPODS: 1.9.3

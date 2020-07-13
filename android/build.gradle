@@ -1,0 +1,45 @@
+group 'com.honghu.player'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven {
+            url 'https://maven.aliyun.com/repository/releases'
+        }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.0'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven {
+            url 'https://maven.aliyun.com/repository/releases'
+        }
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 16
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
+dependencies {
+    implementation 'com.aliyun.sdk.android:AliyunPlayer:4.7.4-full'
+    implementation 'com.alivc.conan:AlivcConan:0.9.5'
+}
