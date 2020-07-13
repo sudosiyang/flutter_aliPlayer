@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:aliPlayer/controller.dart';
 
 class UIPanel extends StatefulWidget {
-  final Controller player;
+  final APController player;
   final BuildContext buildContext;
   final Size viewSize;
   final Rect texturePos;
@@ -24,7 +24,7 @@ class UIPanel extends StatefulWidget {
 }
 
 class UIPanelPanelState extends State<UIPanel> {
-  Controller get player => widget.player;
+  APController get player => widget.player;
   Duration _duration = Duration();
   Duration _currentPos = Duration();
 
@@ -310,7 +310,7 @@ class UIPanelPanelState extends State<UIPanel> {
                               color: Colors.white,
                               iconSize: 40,
                               onPressed: () {
-                                Navigator.of(context).pop();
+                                player.fullScreen==true ? player.exitFullScreen(context) : Navigator.of(context).pop();
                               },
                             )
                           ],

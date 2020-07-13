@@ -11,7 +11,7 @@ class FAliPlayerView extends StatefulWidget {
   // final String url;
   final String playAuth;
   final String vid;
-  final Controller controller;
+  final APController controller;
   final bool isCurrentLocation;
   final String url;
 

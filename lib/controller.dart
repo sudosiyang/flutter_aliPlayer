@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'dart:io';
 import 'event.dart';
 import 'innerView.dart';
 
@@ -93,7 +93,7 @@ class FullScreenChange{
 }
 
 
-class Controller {
+class APController {
 
   /// 创建EventBus
   EventBus eventBus = EventBus();
@@ -140,7 +140,7 @@ class Controller {
 
   OnPlayEventListener _onPlayEventListener;
 
-  Controller({this.isAutoPlay = true, this.loop = false});
+  APController({this.isAutoPlay = true, this.loop = false});
 
   /// 当前是否正在播放
   bool get isPlaying => currentStatus == AVPStatus.AVPStatusStarted.index;
@@ -222,9 +222,6 @@ class Controller {
         break;
       case "onCurrentPositionUpdate":
         eventBus.fire(CurrentPositionUpdate(event["values"]));
-        // if (this._positionUpdateListener != null) {
-        //   this._positionUpdateListener(event["values"]);
-        // }
         break;
       case "onBufferedPositionUpdate":
         if (this._bufferedPositionUpdateListener != null) {
@@ -267,8 +264,17 @@ class Controller {
     eventBus.fire(FullScreenChange(fullScreen));
   }
 
-  void exitFullScreen(context) {
-    Navigator.of(context).pop();
+  void exitFullScreen(context) async{
+    if(Platform.isIOS){
+      if (MediaQuery.of(context).orientation == Orientation.portrait) {
+        await setOrientationLandscape();
+      } else if (MediaQuery.of(context).orientation == Orientation.landscape){
+        await setOrientationPortrait();
+      }
+    } else {
+      print('退出全屏');
+      Navigator.of(context).pop();
+    }
     fullScreen = false;
     eventBus.fire(FullScreenChange(fullScreen));
   }
@@ -280,50 +286,31 @@ class Controller {
     );
 
     await SystemChrome.setEnabledSystemUIOverlays([]);
-    bool changed = false;
     var orientation = MediaQuery.of(context).orientation;
-    // FijkLog.d("start enter fullscreen. orientation:$orientation");
     if (width >= height) {
-      if (MediaQuery.of(context).orientation == Orientation.portrait) {
-        changed = await setOrientationLandscape();
-      } else {
-        if (MediaQuery.of(context).orientation == Orientation.landscape)
-          changed = await setOrientationPortrait();
+      if (orientation == Orientation.portrait) {
+        await setOrientationLandscape();
+      } else if (orientation == Orientation.landscape){
+        await setOrientationPortrait();
       }
     }
-    // FijkLog.d("screen orientation changed:$changed");
-
-    await Navigator.of(context).push(route);
-    fullScreen = false;
-    // widget.player.exitFullScreen();
-    await SystemChrome.setEnabledSystemUIOverlays(
-        [SystemUiOverlay.top, SystemUiOverlay.bottom]);
-    if (changed) {
-      if (width >= height) {
-        await setOrientationPortrait();
-      } else {
-        await setOrientationLandscape();
-      }
+    if(Platform.isAndroid){
+      await Navigator.of(context).push(route);
+      fullScreen = false;
+      // widget.player.exitFullScreen();
+      await SystemChrome.setEnabledSystemUIOverlays(
+          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+      await setOrientationPortrait();
     }
   }
 
-  /// Only works on Android and iOS
   static Future<bool> setOrientationPortrait() async {
-    // if (isDesktop()) return Future.value();
-    // ios crash Supported orientations has no common orientation with the application
-    // bool changed = await _channel.invokeMethod("setOrientationPortrait");
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     return Future.value(true);
   }
 
-  /// Only works on Android and iOS
-  /// return false if current orientation is landscape
-  /// return true if current orientation is portrait and after this API
-  /// call finished, the orientation becomes landscape.
-  /// return false if can't change orientation.
   static Future<bool> setOrientationLandscape() async {
-    // bool changed = await _channel.invokeMethod("setOrientationLandscape");
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.landscapeRight, DeviceOrientation.landscapeLeft]);
     return Future.value(true);

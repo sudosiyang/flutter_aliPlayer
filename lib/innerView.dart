@@ -1,12 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:aliPlayer/controller.dart';
 
 import 'UIPanel.dart';
 
 AnimatedWidget defaultRoutePageBuilder(
-    BuildContext context, Animation<double> animation, Controller controller) {
+    BuildContext context, Animation<double> animation, APController controller) {
   return AnimatedBuilder(
     animation: animation,
     builder: (BuildContext context, Widget child) {
@@ -17,8 +15,7 @@ AnimatedWidget defaultRoutePageBuilder(
               new AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Container(
-                    child:Platform.isAndroid?Texture(textureId: controller.textureId,):UiKitView(
-                viewType: "plugin.honghu.com/ali_video_play_single_",))
+                    child:Texture(textureId: controller.textureId,))
               ),
               UIPanel(
                 player: controller,
