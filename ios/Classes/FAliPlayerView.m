@@ -64,6 +64,7 @@
     return aliPlayer.playerView;
 }
 
+
 - (void)onMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
     NSLog(@"call method:%@", call.method);
 

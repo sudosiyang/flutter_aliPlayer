@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:player/player.dart';
-import 'package:player/controller.dart';
+import 'package:aliPlayer/player.dart';
+import 'package:aliPlayer/controller.dart';
 
 void main() {
   runApp(MyApp());
