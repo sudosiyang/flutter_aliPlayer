@@ -304,7 +304,6 @@ class APController {
     }
     if(Platform.isAndroid){
       await Navigator.of(context).push(route);
-      fullScreen = false;
       // widget.player.exitFullScreen();
       await SystemChrome.setEnabledSystemUIOverlays(
           [SystemUiOverlay.top, SystemUiOverlay.bottom]);
