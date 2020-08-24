@@ -153,11 +153,12 @@ class UIPanelPanelState extends State<UIPanel> {
                         padding: EdgeInsets.only(right: 0, left: 0),
                         child: SliderTheme(
                           data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Theme.of(context).accentColor,
                             overlayShape: RoundSliderOverlayShape(
                               //可继承SliderComponentShape自定义形状
                               overlayRadius: 10, //滑块外圈大小
                             ),
-                            thumbShape: RoundSliderThumbShape(
+                            thumbShape:  RoundSliderThumbShape(
                               //可继承SliderComponentShape自定义形状
                               disabledThumbRadius: 6, //禁用是滑块大小
                               enabledThumbRadius: 6, //滑块大小
