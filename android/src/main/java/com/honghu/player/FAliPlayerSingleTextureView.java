@@ -230,7 +230,7 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
             HashMap<String, Object> map = new HashMap<>();
             map.put("eventType", "onError");
             map.put("msg", errorInfo.getMsg());
-            map.put("errorCode", errorInfo.getCode());
+            map.put("errorCode", errorInfo.getCode().getValue());
             eventSink.success(map);
         }
     }
