@@ -86,6 +86,11 @@ class CurrentPositionUpdate{
   CurrentPositionUpdate(this.position);
 }
 
+class Error{
+  int errorCode;
+  String msg;
+  Error(this.errorCode,this.msg);
+}
 /// 全屏时间
 class FullScreenChange{
   bool isFs;
@@ -234,6 +239,9 @@ class APController {
         if (this._onVideoSizeChanged != null) {
           this._onVideoSizeChanged();
         }
+        break;
+      case "onError":
+        eventBus.fire(Error(event["values"]));
         break;
     }
   }
