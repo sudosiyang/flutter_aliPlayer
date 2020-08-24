@@ -86,10 +86,10 @@ class CurrentPositionUpdate{
   CurrentPositionUpdate(this.position);
 }
 
-class Error{
+class APError{
   int errorCode;
   String msg;
-  Error(this.errorCode,this.msg);
+  APError({this.errorCode,this.msg});
 }
 /// 全屏时间
 class FullScreenChange{
@@ -241,7 +241,7 @@ class APController {
         }
         break;
       case "onError":
-        eventBus.fire(Error(event["values"]));
+        eventBus.fire(APError(errorCode: event["errorCode"],msg:event["msg"]));
         break;
     }
   }
