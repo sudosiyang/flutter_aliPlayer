@@ -48,6 +48,7 @@
 }
 
 - (void)initChannel:(int64_t)viewId messenger:(NSObject <FlutterBinaryMessenger> *)messenger {
+    NSLog(@"init Channel:%lld", viewId);
     NSString *methodChannelName = [NSString stringWithFormat:@"plugin.honghu.com/ali_video_play_single_%lld", viewId];
     NSString *eventChannelName = [NSString stringWithFormat:@"plugin.honghu.com/eventChannel/ali_video_play_single_%lld", viewId];
     [[FlutterEventChannel

@@ -31,9 +31,10 @@
 }
 
 - (NSObject <FlutterPlatformView> *)createWithFrame:(CGRect)frame viewIdentifier:(int64_t)viewId arguments:(id)args {
-    if(!fAliPlayerView){
+    NSLog(@"prepare View");
+//    if(!fAliPlayerView){
+//        NSLog(@"init View");
         fAliPlayerView = [[FAliPlayerView alloc] initWithWithFrame:frame viewIdentifier:viewId arguments:args player:nil binaryMessenger:_messenger];
-    }
     return fAliPlayerView;
 }
 

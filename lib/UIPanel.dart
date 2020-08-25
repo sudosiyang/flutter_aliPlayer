@@ -84,7 +84,6 @@ class UIPanelPanelState extends State<UIPanel> {
   @override
   void dispose() {
     super.dispose();
-    print('dispose');
     _positionEvent?.cancel();
     _stateEvent?.cancel();
     _hideTimer?.cancel();
