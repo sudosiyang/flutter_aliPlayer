@@ -305,10 +305,10 @@ class APController {
     if(Platform.isAndroid){
       await Navigator.of(context).push(route);
       // widget.player.exitFullScreen();
-      await SystemChrome.setEnabledSystemUIOverlays(
-          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
       await setOrientationPortrait();
     }
+    await SystemChrome.setEnabledSystemUIOverlays(
+          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
   }
 
   static Future<bool> setOrientationPortrait() async {
