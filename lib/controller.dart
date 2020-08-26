@@ -294,14 +294,7 @@ class APController {
     );
 
     await SystemChrome.setEnabledSystemUIOverlays([]);
-    var orientation = MediaQuery.of(context).orientation;
-    if (width >= height) {
-      if (orientation == Orientation.portrait) {
-        await setOrientationLandscape();
-      } else if (orientation == Orientation.landscape){
-        await setOrientationPortrait();
-      }
-    }
+    await setOrientationLandscape();
     if(Platform.isAndroid){
       await Navigator.of(context).push(route);
       // widget.player.exitFullScreen();

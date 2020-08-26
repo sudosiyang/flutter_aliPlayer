@@ -61,7 +61,8 @@ class UIPanelPanelState extends State<UIPanel> {
     _prepared = player.currentStatus >= AVPStatus.AVPStatusPrepared.index;
     _playing = player.currentStatus == AVPStatus.AVPStatusStarted.index;
 
-    _positionEvent= player.eventBus.on<CurrentPositionUpdate>().listen((event) {
+    _positionEvent =
+        player.eventBus.on<CurrentPositionUpdate>().listen((event) {
       setState(() {
         _currentPos = Duration(milliseconds: event.position); //position;
       });
@@ -117,7 +118,8 @@ class UIPanelPanelState extends State<UIPanel> {
       opacity: _hideStuff ? 0.0 : 0.8,
       duration: Duration(milliseconds: 400),
       child: Container(
-        height: barHeight,
+        height: barHeight +
+            (player.fullScreen ? MediaQuery.of(context).padding.bottom : 0),
         decoration: BoxDecoration(
             gradient: LinearGradient(colors: [
           Color(0xFF000000).withOpacity(0.0),
@@ -157,7 +159,7 @@ class UIPanelPanelState extends State<UIPanel> {
                               //可继承SliderComponentShape自定义形状
                               overlayRadius: 10, //滑块外圈大小
                             ),
-                            thumbShape:  RoundSliderThumbShape(
+                            thumbShape: RoundSliderThumbShape(
                               //可继承SliderComponentShape自定义形状
                               disabledThumbRadius: 6, //禁用是滑块大小
                               enabledThumbRadius: 6, //滑块大小
@@ -248,6 +250,7 @@ class UIPanelPanelState extends State<UIPanel> {
       padding: const EdgeInsets.all(10),
       color: Colors.black.withOpacity(0.8),
       alignment: Alignment.bottomLeft,
+      height: MediaQuery.of(context).size.height,
       child: InkWell(
         onTap: () {
           setState(() {
@@ -310,7 +313,9 @@ class UIPanelPanelState extends State<UIPanel> {
                               color: Colors.white,
                               iconSize: 40,
                               onPressed: () {
-                                player.fullScreen==true ? player.exitFullScreen(context) : Navigator.of(context).pop();
+                                player.fullScreen == true
+                                    ? player.exitFullScreen(context)
+                                    : Navigator.of(context).pop();
                               },
                             )
                           ],
@@ -366,7 +371,7 @@ class UIPanelPanelState extends State<UIPanel> {
               ),
             ),
           )),
-          speedPanel(),
+      speedPanel(),
     ]);
   }
 

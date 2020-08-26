@@ -52,11 +52,7 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
       }
     });
     _fullScreenEvent = widget.controller.eventBus.on<FullScreenChange>().listen((event) {
-      if(event.isFs == false){
-        setState(() {
-          platformView = new UiKitView(viewType:"plugin.honghu.com/ali_video_play_single_");
-        });
-      }
+      setState(() {});
     });
   }
 
@@ -70,52 +66,66 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
 
   @override
   Widget build(BuildContext context) {
+    double width = widget.controller.fullScreen? MediaQuery.of(context).size.height / widget.controller.height*widget.controller.width :MediaQuery.of(context).size.width;
+    double height;
+    if(widget.controller.fullScreen){
+      height = MediaQuery.of(context).size.height;
+    }else{
+      if(widget.controller.height==null){
+        height=width/16*9;
+      }else{
+        height=width/widget.controller.width*widget.controller.height;
+      }
+    }
+    double aspectRatio=widget.controller.height!=null?widget.controller.width/widget.controller.height: 16 / 9;
     return LayoutBuilder(
       builder: (context, contraints) {
         return Container(
-            color: Colors.black,
-            child: Stack(
-              children: <Widget>[
-                new AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Platform.isAndroid
-                        ? AndroidView(
-                            viewType:
-                                "plugin.honghu.com/ali_video_play_single_",
-                            creationParamsCodec: const StandardMessageCodec(),
-                            onPlatformViewCreated:
-                                widget.controller.onViewCreate,
-                            creationParams: <String, dynamic>{
-                              "playAuth": widget.playAuth ?? null,
-                              "vid": widget.vid ?? null,
-                              "url": widget.url ?? null,
-                              "loop": widget.controller.loop,
-                              "auto": widget.controller.isAutoPlay
-                            },
-                          )
-                        : UiKitView(
-                            viewType:
-                                "plugin.honghu.com/ali_video_play_single_",
-                            creationParamsCodec: const StandardMessageCodec(),
-                            onPlatformViewCreated:
-                                widget.controller.onViewCreate,
-                            creationParams: <String, dynamic>{
-                              "playAuth": widget.playAuth ?? null,
-                              "vid": widget.vid ?? null,
-                              "url": widget.url ?? null,
-                              "loop": widget.controller.loop,
-                              "auto": widget.controller.isAutoPlay
-                            },
-                          )),
-                !prepared
-                    ? Container()
-                    : UIPanel(
-                        player: widget.controller,
-                        viewSize: Size(MediaQuery.of(context).size.width,
-                            MediaQuery.of(context).size.width / 16 * 9),
-                      )
-              ],
-            ));
+          width: width,
+          height: height,
+          color: Colors.black,
+          child: Stack(
+                children: <Widget>[
+                  new AspectRatio(
+                      aspectRatio: aspectRatio,
+                      child: Platform.isAndroid
+                          ? AndroidView(
+                              viewType:
+                                  "plugin.honghu.com/ali_video_play_single_",
+                              creationParamsCodec: const StandardMessageCodec(),
+                              onPlatformViewCreated:
+                                  widget.controller.onViewCreate,
+                              creationParams: <String, dynamic>{
+                                "playAuth": widget.playAuth ?? null,
+                                "vid": widget.vid ?? null,
+                                "url": widget.url ?? null,
+                                "loop": widget.controller.loop,
+                                "auto": widget.controller.isAutoPlay
+                              },
+                            )
+                          : UiKitView(
+                              viewType:
+                                  "plugin.honghu.com/ali_video_play_single_",
+                              creationParamsCodec: const StandardMessageCodec(),
+                              onPlatformViewCreated:
+                                  widget.controller.onViewCreate,
+                              creationParams: <String, dynamic>{
+                                "playAuth": widget.playAuth ?? null,
+                                "vid": widget.vid ?? null,
+                                "url": widget.url ?? null,
+                                "loop": widget.controller.loop,
+                                "auto": widget.controller.isAutoPlay
+                              },
+                            )),
+                  !prepared
+                      ? Container()
+                      : UIPanel(
+                          player: widget.controller,
+                          viewSize: Size(width, height),
+                        )
+                ],
+              ),
+        );
       },
     );
   }
