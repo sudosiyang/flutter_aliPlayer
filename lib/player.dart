@@ -8,20 +8,11 @@ import 'UIPanel.dart';
 import 'controller.dart';
 
 class FAliPlayerView extends StatefulWidget {
-  // final String url;
-  final String playAuth;
-  final String vid;
   final APController controller;
-  final bool isCurrentLocation;
-  final String url;
 
   const FAliPlayerView(
       {Key key,
-      this.controller,
-      this.url,
-      this.isCurrentLocation,
-      this.playAuth,
-      this.vid})
+      this.controller})
       : super(key: key);
 
   @override
@@ -35,7 +26,6 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
   StreamSubscription _fullScreenEvent;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     widget.controller.setFirstRenderedStartListener(() {
       if (widget.controller.firstRenderedStart) {
@@ -58,7 +48,6 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     _stateEvent.cancel();
     _fullScreenEvent.cancel();
@@ -96,11 +85,7 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
                               onPlatformViewCreated:
                                   widget.controller.onViewCreate,
                               creationParams: <String, dynamic>{
-                                "playAuth": widget.playAuth ?? null,
-                                "vid": widget.vid ?? null,
-                                "url": widget.url ?? null,
-                                "loop": widget.controller.loop,
-                                "auto": widget.controller.isAutoPlay
+                                "loop": widget.controller.loop
                               },
                             )
                           : UiKitView(
@@ -110,11 +95,7 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
                               onPlatformViewCreated:
                                   widget.controller.onViewCreate,
                               creationParams: <String, dynamic>{
-                                "playAuth": widget.playAuth ?? null,
-                                "vid": widget.vid ?? null,
-                                "url": widget.url ?? null,
                                 "loop": widget.controller.loop,
-                                "auto": widget.controller.isAutoPlay
                               },
                             )),
                   !prepared
