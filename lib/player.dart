@@ -27,15 +27,15 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
   @override
   void initState() {
     super.initState();
-    widget.controller.setFirstRenderedStartListener(() {
+    widget.controller.onPlayEvent.listen((event) {
       if (widget.controller.firstRenderedStart) {
         setState(() {});
         widget.controller.firstRenderedStart = false;
       }
     });
 
-    _stateEvent = widget.controller.eventBus.on<StateChangeEvent>().listen((event) {
-      if (event.state == 2) {
+    _stateEvent = widget.controller.onPlayEvent.listen((event) {
+      if (event == AVPEventType.AVPEventPrepareDone) {
         setState(() {
           prepared = true;
         });
@@ -49,8 +49,8 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
   @override
   void dispose() {
     super.dispose();
-    _stateEvent.cancel();
-    _fullScreenEvent.cancel();
+    _stateEvent?.cancel();
+    _fullScreenEvent?.cancel();
   }
 
   @override

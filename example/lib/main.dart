@@ -21,19 +21,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    controller = APController(isAutoPlay: false, loop: true);
-    controller.eventBus.on<FullScreenChange>().listen((event) {
-      if(Platform.isIOS){
-        setState(() {
-          fullScreen = event.isFs;
-        });
-      }
+    controller = APController(isAutoPlay: false, loop: false);
+    controller.onPlayEvent.listen((status) {
+      print(status);
     });
-    view = FAliPlayerView(
-        url:
-            'https://vod.apuscn.com/hundun/89b4542bcd5d491d9660f1d0616dbb39/89b4542bcd5d491d9660f1d0616dbb39.m3u8',
-        controller: controller,
-        isCurrentLocation: true);
+    Future.delayed(Duration(milliseconds: 1000),(){
+      controller.setSource(url:'https://vod.apuscn.com/hundun/89b4542bcd5d491d9660f1d0616dbb39/89b4542bcd5d491d9660f1d0616dbb39.m3u8');
+    });
   }
 
   changeState() {
@@ -52,9 +46,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
           body: LayoutBuilder(builder: (context,con){
-            return _wrapper(Column(
+            return Column(
                 children: <Widget>[
-                  view == null ? Container() : view,
+                  FAliPlayerView(controller: controller),
                   FlatButton(
                     child: Text(
                       '下一个',
@@ -72,16 +66,8 @@ class _MyAppState extends State<MyApp> {
                     },
                   )
                 ],
-              ),context);
+              );
             }))
     );
-  }
-
-  Widget _wrapper(widget,context){
-    double width= MediaQuery.of(context).size.width;
-    return Platform.isIOS ? OverflowBox(
-              alignment: Alignment.topLeft,
-              maxHeight: fullScreen == true? width : double.infinity,
-              child: widget) : widget;
   }
 }

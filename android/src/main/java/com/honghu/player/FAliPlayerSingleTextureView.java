@@ -30,7 +30,10 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.platform.PlatformView;
 
-public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.MethodCallHandler, IPlayer.OnStateChangedListener,IPlayer.OnVideoSizeChangedListener, IPlayer.OnPreparedListener, IPlayer.OnInfoListener, IPlayer.OnErrorListener {
+public class FAliPlayerSingleTextureView implements PlatformView,
+        IPlayer.OnCompletionListener,
+        IPlayer.OnTrackChangedListener,
+        MethodChannel.MethodCallHandler,IPlayer.OnSeekCompleteListener,IPlayer.OnStateChangedListener,IPlayer.OnVideoSizeChangedListener, IPlayer.OnPreparedListener,IPlayer.OnLoadingStatusListener, IPlayer.OnInfoListener,IPlayer.OnRenderingStartListener ,IPlayer.OnErrorListener {
     int viewId;
     private AliPlayer aliPlayer;
     private MethodChannel methodChannel;
@@ -53,23 +56,16 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
         aliPlayer.setOnPreparedListener(this);
         aliPlayer.setOnInfoListener(this);
         aliPlayer.setOnVideoSizeChangedListener(this);
+        aliPlayer.setOnLoadingStatusListener(this);
         aliPlayer.setOnErrorListener(this);
-        aliPlayer.enableLog(false);
-        if(args.get("url") != null){
-            UrlSource urlSource= new UrlSource();
-            urlSource.setUri((String) args.get("url"));
-            aliPlayer.setDataSource(urlSource);
-        }
-        if(args.get("vid")!=null) {
-            VidAuth vidAuth = new VidAuth();
-            vidAuth.setPlayAuth((String) args.get("playAuth"));
-            vidAuth.setVid((String) args.get("vid"));
-            aliPlayer.setDataSource(vidAuth);
-        }
+        aliPlayer.setOnRenderingStartListener(this);
+        aliPlayer.setOnSeekCompleteListener(this);
+        aliPlayer.setOnCompletionListener(this);
+        aliPlayer.setOnTrackChangedListener(this);
         aliPlayer.setScaleMode(IPlayer.ScaleMode.SCALE_ASPECT_FIT);
-
         aliPlayer.setMute(false);
         aliPlayer.setLoop((Boolean) args.get("loop"));
+
 //        PlayerConfig config = aliPlayer.getConfig();
         //设置网络超时时间，单位ms
 //        config.mNetworkTimeout = 5000;
@@ -95,7 +91,6 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
                 aliPlayer.setDisplay(null);
             }
         });
-        aliPlayer.prepare();
     }
 
     private void initChannel(BinaryMessenger messenger, int viewId) {
@@ -114,6 +109,7 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
         });
         methodChannel.setMethodCallHandler(this);
     }
+
 
 
     @Override
@@ -162,7 +158,7 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
             case "seekTo":
                 int position = call.argument("position");
                 BigDecimal b = new BigDecimal(position);
-                aliPlayer.seekTo(b.longValue());
+                aliPlayer.seekTo(b.longValue(), IPlayer.SeekMode.Accurate);
                 result.success(null);
                 break;
             case "setSpeed":
@@ -191,13 +187,13 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
     @Override
     public void onPrepared() {
         System.out.println("onPrepared：");
-        List<TrackInfo> trackInfos  = aliPlayer.getMediaInfo().getTrackInfos();
-        System.out.println(trackInfos);
-        for(TrackInfo  i:trackInfos) {
-            System.out.println("======");
-            System.out.println(i.getIndex());
-            System.out.println(i.getVodDefinition());
-        }
+//        List<TrackInfo> trackInfos  = aliPlayer.getMediaInfo().getTrackInfos();
+//        System.out.println(trackInfos);
+//        for(TrackInfo  i:trackInfos) {
+//            System.out.println("======");
+//            System.out.println(i.getIndex());
+//            System.out.println(i.getVodDefinition());
+//        }
         if (eventSink != null) {
             HashMap<String, Object> map = new HashMap<>();
             map.put("eventType", "onPrepared");
@@ -244,5 +240,70 @@ public class FAliPlayerSingleTextureView implements PlatformView, MethodChannel.
             map.put("height", i1);
             eventSink.success(map);
         }
+    }
+
+    @Override
+    public void onLoadingBegin() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 4);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onLoadingProgress(int i, float v) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onLoadingProcess");
+        map.put("percent",i);
+        map.put("kbps",v);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onLoadingEnd() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 5);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onRenderingStart() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 2);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onSeekComplete() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 6);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onCompletion() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 3);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onChangedSuccess(TrackInfo trackInfo) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 7);
+        eventSink.success(map);
+    }
+
+    @Override
+    public void onChangedFail(TrackInfo trackInfo, ErrorInfo errorInfo) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventType", "onPlayerEvent");
+        map.put("values", 8);
+        eventSink.success(map);
     }
 }

@@ -11,8 +11,7 @@ typedef FirstRenderedStartListener = void Function();
 ///当前缓存进度更新
 typedef OnBufferedPositionUpdateListener = void Function(int position);
 
-///当前缓存进度更新
-typedef OnPlayEventListener = void Function(AVPEventType eventType);
+
 
 ///大小改变回调
 typedef OnVideoSizeChanged = void Function();
@@ -40,8 +39,11 @@ enum AVPEventType {
   ///跳转完成事件*/
   AVPEventSeekEnd,
 
-  ///循环播放开始事件*/
-  AVPEventLoopingStart,
+  ///轨道切换成功*/
+  AVPEventTrackChangeSuccess,
+
+  ///轨道切换失败*/
+  AVPEventTrackChangeFail,
 }
 enum AVPStatus {
   ///空转，闲时，静态
@@ -74,12 +76,13 @@ enum AVPScalingMode {
   SCALEASPECTFILL,
 }
 
-/// Event 播放器状态监听
-class StateChangeEvent {
-  int state;
-  StateChangeEvent(this.state);
-}
 
+
+class LoadProcess{
+  final int percent;
+  final double kbps;
+  LoadProcess(this.percent,this.kbps);
+}
 /// 当前播放进度更新
 class CurrentPositionUpdate{
   int position;
@@ -132,33 +135,28 @@ class APController {
   ///当前视频的宽
   int width;
 
-  int currentStatus;
+  AVPStatus currentStatus;
 
   int textureId;
 
-  ///第一帧渲染成功的监听器，每次切换新的视频都会调用
-  FirstRenderedStartListener _firstRenderedStartListener;
 
   OnBufferedPositionUpdateListener _bufferedPositionUpdateListener;
 
   OnVideoSizeChanged _onVideoSizeChanged;
 
-  OnPlayEventListener _onPlayEventListener;
 
   APController({this.isAutoPlay = true, this.loop = false});
 
   /// 当前是否正在播放
-  bool get isPlaying => currentStatus == AVPStatus.AVPStatusStarted.index;
+  bool get isPlaying => currentStatus == AVPStatus.AVPStatusStarted;
 
   void setBufferedPositionUpdateListener(
       OnBufferedPositionUpdateListener value) {
     _bufferedPositionUpdateListener = value;
   }
 
-  /// 设置首帧渲染完成的监听器
-  setFirstRenderedStartListener(FirstRenderedStartListener listener) {
-    this._firstRenderedStartListener = listener;
-  }
+  Stream<AVPEventType> get onPlayEvent => eventBus.on<AVPEventType>();
+  Stream<AVPStatus> get onStatusEvent => eventBus.on<AVPStatus>();
 
   /// 设置视频宽高变化监听
   setOnVideoSizeChanged(OnVideoSizeChanged listener) {
@@ -166,9 +164,6 @@ class APController {
   }
 
   ///播放器事件监听
-  setOnPlayEventListener(OnPlayEventListener listener) {
-    this._onPlayEventListener = listener;
-  }
 
   ///开始播放
   Future<void> start() {
@@ -210,19 +205,17 @@ class APController {
     String type = event['eventType'];
     switch (type) {
       case "onPlayerEvent":
-        if (_onPlayEventListener != null) {
-          _onPlayEventListener(event["values"]);
-        }
+        eventBus.fire(AVPEventType.values[event["values"]]);
         break;
       case "onPlayerStatusChanged":
-        currentStatus = event["values"];
+        currentStatus = AVPStatus.values[event["values"]];
         if (event["values"] == AVPStatus.AVPStatusStarted.index) {
           firstRenderedStart = true;
-          this._firstRenderedStartListener();
         }
-        eventBus.fire(StateChangeEvent(event["values"]));
+        eventBus.fire(AVPStatus.values[(event["values"])]);
         break;
       case "onPrepared":
+        eventBus.fire(AVPEventType.AVPEventPrepareDone);
         duration = new Duration(milliseconds: event['duration']);
         break;
       case "onCurrentPositionUpdate":
@@ -232,6 +225,9 @@ class APController {
         if (this._bufferedPositionUpdateListener != null) {
           this._bufferedPositionUpdateListener(event["values"]);
         }
+        break;
+      case "onLoadingProcess":
+        eventBus.fire(LoadProcess(event["percent"],event['kbps']));
         break;
       case "onVideoSizeChanged":
         this.height = event["height"];

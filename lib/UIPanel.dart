@@ -58,8 +58,8 @@ class UIPanelPanelState extends State<UIPanel> {
     super.initState();
     _duration = player.duration;
     _currentPos = new Duration(milliseconds: 0);
-    _prepared = player.currentStatus >= AVPStatus.AVPStatusPrepared.index;
-    _playing = player.currentStatus == AVPStatus.AVPStatusStarted.index;
+    _prepared = player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
+    _playing = player.currentStatus == AVPStatus.AVPStatusStarted;
 
     _positionEvent =
         player.eventBus.on<CurrentPositionUpdate>().listen((event) {
@@ -67,9 +67,9 @@ class UIPanelPanelState extends State<UIPanel> {
         _currentPos = Duration(milliseconds: event.position); //position;
       });
     });
-    _stateEvent = player.eventBus.on<StateChangeEvent>().listen((event) {
+    _stateEvent = player.onStatusEvent.listen((event) {
       setState(() {
-        _playing = event.state == AVPStatus.AVPStatusStarted.index;
+        _playing = event == AVPStatus.AVPStatusStarted;
       });
     });
   }
