@@ -196,25 +196,25 @@ class UIPanelPanelState extends State<UIPanel> {
                       child: Padding(
                         padding: EdgeInsets.only(right: 0, left: 8),
                         child: AliSlider(
-                            colors: sliderColors,
-                            value: currentValue,
-                            cacheValue: _buffered.toDouble(),
-                            min: 0.0,
-                            max: duration,
-                            onChanged: (v) {
-                              setState(() {
-                                _seekPos = v;
-                              });
-                            },
-                            onChangeEnd: (v) {
-                              setState(() {
-                                player.seekTo(v.toInt());
-                                _currentPos =
-                                    Duration(milliseconds: _seekPos.toInt());
-                                _seekPos = -1;
-                              });
-                            },
-                          ),
+                          colors: sliderColors,
+                          value: currentValue,
+                          cacheValue: _buffered.toDouble(),
+                          min: 0.0,
+                          max: duration,
+                          onChanged: (v) {
+                            setState(() {
+                              _seekPos = v;
+                            });
+                          },
+                          onChangeEnd: (v) {
+                            setState(() {
+                              player.seekTo(v.toInt());
+                              _currentPos =
+                                  Duration(milliseconds: _seekPos.toInt());
+                              _seekPos = -1;
+                            });
+                          },
+                        ),
                       ),
                     ),
 
