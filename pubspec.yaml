@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  screen: ^0.0.5
+  volume_control: ^0.1.3
 
 dev_dependencies:
   flutter_test:

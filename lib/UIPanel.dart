@@ -5,6 +5,8 @@ import 'package:aliPlayer/Slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:aliPlayer/controller.dart';
+import 'package:screen/screen.dart';
+import 'package:volume_control/volume_control.dart';
 
 class UIPanel extends StatefulWidget {
   final APController player;
@@ -48,7 +50,9 @@ class UIPanelPanelState extends State<UIPanel> {
   double _speed = 1;
   List _tracks = [];
   int _qulityIndex = 0;
-  double _volume = 1.0;
+  double _volume;
+  double _brightness;
+  int _changeState;
   Map qulity = {"HD": '超清', "LD": '标清', "SD": '高清', "video": '高清'};
   final barHeight = 40.0;
   static const AliSliderColors sliderColors = AliSliderColors(
@@ -85,7 +89,6 @@ class UIPanelPanelState extends State<UIPanel> {
       });
     });
     _playerEvent = player.onPlayEvent.listen((event) {
-      print(event);
       switch (event) {
         case AVPEventType.AVPEventPrepareDone:
           setState(() {
@@ -357,7 +360,41 @@ class UIPanelPanelState extends State<UIPanel> {
           height: widget.viewSize.height,
           child: Stack(children: [
             GestureDetector(
+              onVerticalDragStart: (DragStartDetails detail) async {
+                if (detail.localPosition.dx <
+                    MediaQuery.of(context).size.width / 2) {
+                  _brightness = await Screen.brightness;
+                  _changeState = 1;
+                } else {
+                  _changeState = 0;
+                  _volume = await VolumeControl.volume;
+                }
+              },
+              onVerticalDragUpdate: (DragUpdateDetails detail) {
+                if (_changeState == 1) {
+                  double brightness = _brightness - (detail.delta.dy / 100);
+                  if (brightness < 0.01) {
+                    _brightness = 0.01;
+                  } else if (brightness > 1) {
+                    _brightness = 1.0;
+                  } else {
+                    _brightness = brightness;
+                  }
+                  Screen.setBrightness(_brightness);
+                } else {
+                  double volume = _volume - (detail.delta.dy / 100);
+                  if (volume < 0) {
+                    _volume = 0;
+                  } else if (volume > 1) {
+                    _volume = 1.0;
+                  } else {
+                    _volume = volume;
+                  }
+                  VolumeControl.setVolume(_volume);
+                }
+              },
               onHorizontalDragStart: (_) {
+                print('onHorizontalDragStart');
                 _fastPos = _currentPos;
                 setState(() {
                   _showFastbox = true;
