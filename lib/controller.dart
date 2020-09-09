@@ -97,10 +97,10 @@ class BufferPosition{
   BufferPosition(this.position);
 }
 
-class APError{
+class AVPError{
   int errorCode;
   String msg;
-  APError({this.errorCode,this.msg});
+  AVPError({this.errorCode,this.msg});
 }
 
 
@@ -154,6 +154,7 @@ class APController {
   Stream<int> get onBufferPositionUpdate => eventBus.on<BufferPosition>().transform(StreamTransformer.fromHandlers(handleData:(value, sink){
     sink.add(value.position);
   }));
+  Stream<AVPError> get onError => eventBus.on<AVPError>();
   Stream<AVPScreenStatus> get onFullScreenChange => eventBus.on<AVPScreenStatus>();
   /// 设置视频宽高变化监听
   setOnVideoSizeChanged(OnVideoSizeChanged listener) {
@@ -242,7 +243,7 @@ class APController {
         }
         break;
       case "onError":
-        eventBus.fire(APError(errorCode: event["errorCode"],msg:event["msg"]));
+        eventBus.fire(AVPError(errorCode: event["errorCode"],msg:event["msg"]));
         break;
     }
   }

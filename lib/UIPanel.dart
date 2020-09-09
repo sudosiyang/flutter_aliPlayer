@@ -80,8 +80,10 @@ class UIPanelPanelState extends State<UIPanel> {
       });
     });
     _playerEvent = player.onPlayEvent.listen((event) {
-      if (event == AVPEventType.AVPEventPrepareDone) {
-        setState(() {
+      print(event);
+      switch(event){
+        case AVPEventType.AVPEventPrepareDone:
+          setState(() {
           _duration = player.duration;
         });
         Future.delayed(Duration(milliseconds: 400),(){
@@ -89,6 +91,16 @@ class UIPanelPanelState extends State<UIPanel> {
             _tracks = player.tracks;
           });
         });
+        break;
+        case AVPEventType.AVPEventLoadingStart:
+        setState(() {
+          _prepared = false;
+        });
+        break;
+        case AVPEventType.AVPEventLoadingEnd:
+          _prepared = true;
+        break;
+        default:
       }
     });
   }
@@ -363,9 +375,15 @@ class UIPanelPanelState extends State<UIPanel> {
               },
               onHorizontalDragUpdate: (DragUpdateDetails detail) {
                 setState(() {
-                  _fastPos = Duration(
-                      milliseconds: _fastPos.inMilliseconds +
-                          detail.delta.dx.toInt() * 2000);
+                  int res=_fastPos.inMilliseconds +
+                          detail.delta.dx.toInt() * 1000;
+                  if(res<=0){
+                    _fastPos = Duration(
+                        milliseconds:0);
+                  }else if(res < _duration.inMilliseconds){
+                    _fastPos = Duration(
+                        milliseconds:res);
+                  }
                 });
               },
               onHorizontalDragEnd: (_) {
