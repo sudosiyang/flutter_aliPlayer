@@ -21,6 +21,7 @@ import com.aliyun.player.source.UrlSource;
 import com.aliyun.player.source.VidAuth;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -128,6 +129,21 @@ public class FAliPlayerSingleTextureView implements PlatformView,
         switch (call.method) {
             case "start":
                 aliPlayer.start();
+                result.success(null);
+                break;
+            case "getTrack":
+                List<TrackInfo> info = aliPlayer.getMediaInfo().getTrackInfos();
+                List<String> list = new ArrayList();
+                for(TrackInfo  i:info) {
+                    list.add(i.getVodDefinition());
+                    System.out.println("==========");
+                    System.out.println(i.getVodDefinition());
+                }
+                result.success(list);
+                break;
+            case "setTrack":
+                String index = call.argument("index");
+                aliPlayer.selectTrack(Integer.parseInt(index),true);
                 result.success(null);
                 break;
             case "setSource":

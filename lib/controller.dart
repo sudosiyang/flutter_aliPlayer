@@ -127,7 +127,7 @@ class APController {
 
   ///当前视频的高
   int height;
-
+  List tracks = [];
   ///当前视频的宽
   int width;
 
@@ -187,6 +187,16 @@ class APController {
     });
   }
 
+  Future<List> getTrack() {
+    return _channel?.invokeMethod("getTrack");
+  }
+
+  Future<List> setTrack(int index) {
+    return _channel?.invokeMethod("setTrack",{
+      "index":index.toString()
+    });
+  }
+
   Future<void> seekTo(int position) {
     return _channel?.invokeMethod("seekTo", {"position": position});
   }
@@ -208,6 +218,9 @@ class APController {
       case "onPrepared":
         eventBus.fire(AVPEventType.AVPEventPrepareDone);
         duration = new Duration(milliseconds: event['duration']);
+        getTrack().then((value){
+          tracks = value;
+        });
         break;
       case "onCurrentPositionUpdate":
         eventBus.fire(PlayerPosition(event["values"]));

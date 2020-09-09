@@ -27,11 +27,12 @@ class UIPanelPanelState extends State<UIPanel> {
   APController get player => widget.player;
   Duration _duration = Duration();
   Duration _currentPos = Duration();
+  Duration _fastPos = Duration();
 
   // Duration _bufferPos = Duration();
   bool _playing = false;
   bool _prepared = false;
-  String _exception;
+  bool _showFastbox = false;
 
   double _seekPos = -1.0;
 
@@ -41,11 +42,18 @@ class UIPanelPanelState extends State<UIPanel> {
 
   Timer _hideTimer;
   bool _hideStuff = true;
-  int _index = 0;
+  bool _speedShow = false;
+  bool _qulityShow = false;
   double _speed = 1;
+  List _tracks= [];
   int _qulityIndex = 0;
   double _volume = 1.0;
-
+  Map qulity = {
+    "HD":'超清',
+    "LD":'标清',
+    "SD":'高清',
+    "video":'高清'
+  };
   final barHeight = 40.0;
 
   @override
@@ -53,8 +61,13 @@ class UIPanelPanelState extends State<UIPanel> {
     super.initState();
     _currentPos = new Duration(milliseconds: 0);
     _playing = player.currentStatus == AVPStatus.AVPStatusStarted;
-    _positionEvent =
-        player.onPositionUpdate.listen((position) {
+    _duration = player.duration;
+    _tracks = player.tracks;
+    if (player.currentStatus != null) {
+      _prepared =
+          player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
+    }
+    _positionEvent = player.onPositionUpdate.listen((position) {
       setState(() {
         _currentPos = Duration(milliseconds: position); //position;
       });
@@ -62,13 +75,19 @@ class UIPanelPanelState extends State<UIPanel> {
     _stateEvent = player.onStatusEvent.listen((event) {
       setState(() {
         _playing = event == AVPStatus.AVPStatusStarted;
-        _prepared = player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
+        _prepared =
+            player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
       });
     });
     _playerEvent = player.onPlayEvent.listen((event) {
       if (event == AVPEventType.AVPEventPrepareDone) {
         setState(() {
           _duration = player.duration;
+        });
+        Future.delayed(Duration(milliseconds: 400),(){
+          setState(() {
+            _tracks = player.tracks;
+          });
         });
       }
     });
@@ -120,7 +139,9 @@ class UIPanelPanelState extends State<UIPanel> {
       duration: Duration(milliseconds: 400),
       child: Container(
         height: barHeight +
-            (player.fullScreen ? MediaQuery.of(context).padding.bottom : 0),
+            (player.fullScreen
+                ? MediaQuery.of(context).padding.bottom + 20
+                : 20),
         decoration: BoxDecoration(
             gradient: LinearGradient(colors: [
           Color(0xFF000000).withOpacity(0.0),
@@ -131,9 +152,12 @@ class UIPanelPanelState extends State<UIPanel> {
           child: Row(
             children: <Widget>[
               IconButton(
-                  icon: Icon(
-                    _playing ? Icons.pause : Icons.play_arrow,
+                  icon: ImageIcon(
+                    !_playing
+                        ? AssetImage('images/play.png', package: "aliPlayer")
+                        : AssetImage('images/pause.png', package: "aliPlayer"),
                     color: Colors.white,
+                    size: 25,
                   ),
                   onPressed: () {
                     _playing ? player.pause() : player.start();
@@ -142,7 +166,7 @@ class UIPanelPanelState extends State<UIPanel> {
                 padding: EdgeInsets.only(right: 5.0, left: 5),
                 child: Text(
                   '${_duration2String(_currentPos)}',
-                  style: TextStyle(fontSize: 14.0),
+                  style: TextStyle(fontSize: player.fullScreen ? 14 : 12.0),
                 ),
               ),
 
@@ -155,21 +179,22 @@ class UIPanelPanelState extends State<UIPanel> {
                         padding: EdgeInsets.only(right: 0, left: 0),
                         child: SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: Theme.of(context).accentColor,
+                            activeTrackColor: Color(0xffFF5800),
+                            thumbColor: Colors.white,
+                            inactiveTrackColor:
+                                Color.fromRGBO(255, 255, 255, 0.5),
                             overlayShape: RoundSliderOverlayShape(
                               //可继承SliderComponentShape自定义形状
                               overlayRadius: 10, //滑块外圈大小
                             ),
                             thumbShape: RoundSliderThumbShape(
                               //可继承SliderComponentShape自定义形状
-                              disabledThumbRadius: 6, //禁用是滑块大小
-                              enabledThumbRadius: 6, //滑块大小
+                              disabledThumbRadius: 8, //禁用是滑块大小
+                              enabledThumbRadius: 8, //滑块大小
                             ),
                           ),
                           child: Slider(
                             value: currentValue,
-                            activeColor: Colors.white,
-                            inactiveColor: Color.fromRGBO(255, 255, 255, 0.4),
                             min: 0.0,
                             max: duration,
                             label: '$currentValue',
@@ -181,7 +206,6 @@ class UIPanelPanelState extends State<UIPanel> {
                             onChangeEnd: (v) {
                               setState(() {
                                 player.seekTo(v.toInt());
-                                print("seek to $v");
                                 _currentPos =
                                     Duration(milliseconds: _seekPos.toInt());
                                 _seekPos = -1;
@@ -200,25 +224,29 @@ class UIPanelPanelState extends State<UIPanel> {
                       child: Text(
                         '${_duration2String(_duration)}',
                         style: TextStyle(
-                          fontSize: 14.0,
+                          fontSize: player.fullScreen ? 14 : 12.0,
                         ),
                       ),
                     ),
               player.fullScreen
-                  ? InkWell(
-                      onTap: () {
-                        this._index = 1;
+                  ? FlatButton(
+                      textColor: Colors.white,
+                      onPressed: () {
+                        this._speedShow = true;
                       },
                       child: Container(
-                        margin: const EdgeInsets.only(left: 5, right: 5),
-                        child: Text(_speed == 1 ? '倍速' : '${_speed}X'),
+                        child: Text(
+                          _speed == 1 ? '倍速' : '${_speed}X',
+                          style: TextStyle(fontSize: 15),
+                        ),
                       ),
                     )
                   : Center(),
-              player.fullScreen && widget.sources != null
-                  ? InkWell(
-                      onTap: () {
-                        this._index = 2;
+              player.fullScreen
+                  ? FlatButton(
+                      textColor: Colors.white,
+                      onPressed: () {
+                        this._qulityShow=true;
                       },
                       child: Container(
                         margin: const EdgeInsets.only(left: 5, right: 5),
@@ -227,9 +255,15 @@ class UIPanelPanelState extends State<UIPanel> {
                     )
                   : Center(),
               IconButton(
-                icon: Icon(player.fullScreen
-                    ? Icons.fullscreen_exit
-                    : Icons.fullscreen),
+                icon: ImageIcon(
+                  player.fullScreen
+                      ? AssetImage('images/exitFullscreen.png',
+                          package: 'aliPlayer')
+                      : AssetImage('images/fullscreen.png',
+                          package: 'aliPlayer'),
+                  size: 40,
+                  color: Colors.white,
+                ),
                 padding: EdgeInsets.only(left: 10.0, right: 10.0),
                 color: Colors.white,
                 onPressed: () {
@@ -246,164 +280,227 @@ class UIPanelPanelState extends State<UIPanel> {
     );
   }
 
-  Widget speedPanel() {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      color: Colors.black.withOpacity(0.8),
-      alignment: Alignment.bottomLeft,
-      height: MediaQuery.of(context).size.height,
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            this._index = 0;
-          });
-        },
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(7.0),
-                child: Text(
-                  '播放速度',
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white),
-                ),
-              ),
-              Row(
-                children: _speedContainer(),
-              )
-            ]),
-      ),
+  Widget _speedPanel(List<Widget> data) {
+    return Offstage(
+      offstage: !_speedShow,
+      child: Stack(children: [
+        GestureDetector(
+          onTap: () {
+            this._speedShow = false;
+          },
+          child: Container(
+            color: Colors.transparent,
+          ),
+        ),
+        AnimatedPositioned(
+          top: 0,
+          right: _speedShow ? 0 : -200,
+          duration: Duration(milliseconds: 300),
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.all(10),
+            color: Colors.black.withOpacity(0.8),
+            alignment: Alignment.bottomLeft,
+            height: MediaQuery.of(context).size.height,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [...data]),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _quiltyPanel(List<Widget> data) {
+    return Offstage(
+      offstage: !_qulityShow,
+      child: Stack(children: [
+        GestureDetector(
+          onTap: () {
+            this._qulityShow = false;
+          },
+          child: Container(
+            color: Colors.transparent,
+          ),
+        ),
+        AnimatedPositioned(
+          top: 0,
+          right: _qulityShow ? 0 : -200,
+          duration: Duration(milliseconds: 300),
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.all(10),
+            color: Colors.black.withOpacity(0.8),
+            alignment: Alignment.bottomLeft,
+            height: MediaQuery.of(context).size.height,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [...data]),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return IndexedStack(index: _index, children: <Widget>[
+    return Stack(children: <Widget>[
       Container(
           height: widget.viewSize.height,
-          child: GestureDetector(
-            onTap: _cancelAndRestartTimer,
-            child: AbsorbPointer(
-              absorbing: _hideStuff,
-              child: Column(
-                children: <Widget>[
-                  AnimatedOpacity(
-                    opacity: _hideStuff ? 0 : 0.8,
-                    duration: Duration(milliseconds: 400),
-                    child: Container(
-                        height: player.fullScreen ? 50 : barHeight,
-                        decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                                colors: [
-                              Color(0xFF000000).withOpacity(0.5),
-                              Color(0xFF000000).withOpacity(0.0),
-                            ],
-                                begin: FractionalOffset(0, 0),
-                                end: FractionalOffset(0, 1))),
-                        child: Row(
-                          children: <Widget>[
-                            IconButton(
-                              icon: Icon(
-                                Icons.navigate_before,
-                                size: 40,
-                              ),
-                              color: Colors.white,
-                              iconSize: 40,
-                              onPressed: () {
-                                player.fullScreen == true
-                                    ? player.exitFullScreen(context)
-                                    : Navigator.of(context).pop();
-                              },
-                            )
-                          ],
-                        )),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        _cancelAndRestartTimer();
-                      },
+          child: Stack(children: [
+            GestureDetector(
+              onHorizontalDragStart: (_) {
+                _fastPos = _currentPos;
+                setState(() {
+                  _showFastbox = true;
+                });
+              },
+              onHorizontalDragUpdate: (DragUpdateDetails detail) {
+                setState(() {
+                  _fastPos = Duration(
+                      milliseconds: _fastPos.inMilliseconds +
+                          detail.delta.dx.toInt() * 2000);
+                });
+              },
+              onHorizontalDragEnd: (_) {
+                player.seekTo(_fastPos.inMilliseconds);
+                setState(() {
+                  _showFastbox = false;
+                });
+              },
+              onTap: _cancelAndRestartTimer,
+              child: AbsorbPointer(
+                absorbing: _hideStuff,
+                child: Column(
+                  children: <Widget>[
+                    AnimatedOpacity(
+                      opacity: _hideStuff ? 0 : 0.8,
+                      duration: Duration(milliseconds: 400),
                       child: Container(
-                        color: Colors.transparent,
-                        height: double.infinity,
-                        width: double.infinity,
-                        child: Center(
-                            child: _exception != null
-                                ? Text(
-                                    _exception,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 25,
-                                    ),
-                                  )
-                                : _prepared
-                                    ? AnimatedOpacity(
-                                        opacity: _hideStuff ? 0.0 : 0.7,
-                                        duration: Duration(milliseconds: 400),
-                                        child: IconButton(
-                                            iconSize: barHeight * 2,
-                                            icon: Icon(
-                                                _playing
-                                                    ? Icons.pause
-                                                    : Icons.play_arrow,
-                                                color: _playing
-                                                    ? Colors.transparent
-                                                    : Colors.white),
-                                            padding: EdgeInsets.only(
-                                                left: 10.0, right: 10.0),
-                                            onPressed: _playOrPause))
-                                    : SizedBox(
-                                        width: barHeight,
-                                        height: barHeight,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation(
-                                                Colors.white)),
-                                      )),
+                          height: player.fullScreen ? 50 : barHeight,
+                          decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                  colors: [
+                                Color(0xFF000000).withOpacity(0.5),
+                                Color(0xFF000000).withOpacity(0.0),
+                              ],
+                                  begin: FractionalOffset(0, 0),
+                                  end: FractionalOffset(0, 1))),
+                          child: Row(
+                            children: <Widget>[
+                              IconButton(
+                                alignment: Alignment.topLeft,
+                                icon: ImageIcon(AssetImage('images/back.png',
+                                    package: 'aliPlayer')),
+                                color: Colors.white,
+                                iconSize: 45,
+                                onPressed: () {
+                                  player.fullScreen == true
+                                      ? player.exitFullScreen(context)
+                                      : Navigator.of(context).pop();
+                                },
+                              )
+                            ],
+                          )),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          _cancelAndRestartTimer();
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Center(child:_prepared
+                              ? AnimatedOpacity(
+                                  opacity: _hideStuff ? 0.0 : 0.7,
+                                  duration: Duration(milliseconds: 400),
+                                  child: IconButton(
+                                      iconSize: barHeight * 2,
+                                      icon: ImageIcon(
+                                          !_playing
+                                              ? AssetImage('images/play.png',
+                                                  package: "aliPlayer")
+                                              : AssetImage('images/pause.png',
+                                                  package: "aliPlayer"),
+                                          color: _playing
+                                              ? Colors.transparent
+                                              : Colors.white),
+                                      padding: EdgeInsets.only(
+                                          left: 10.0, right: 10.0),
+                                      onPressed: _playOrPause))
+                              : SizedBox(
+                                  width: barHeight,
+                                  height: barHeight,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white)),
+                                )),
+                        ),
                       ),
                     ),
-                  ),
-                  _buildBottomBar(context),
-                ],
+                    _buildBottomBar(context),
+                  ],
+                ),
               ),
             ),
-          )),
-      speedPanel(),
+            _fastBox()
+          ])),
+      _speedPanel(_speedContainer()),
+      _quiltyPanel(_qualityContainer())
     ]);
+  }
+
+  // 快进快退显示
+  _fastBox() {
+    return Positioned(
+      top: widget.viewSize.height / 2 - 20,
+      left: widget.viewSize.width / 2 - 60,
+      child: Offstage(
+          offstage: !_showFastbox,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            decoration: BoxDecoration(
+                color: Color.fromRGBO(0, 0, 0, 0.7),
+                borderRadius: BorderRadius.all(Radius.circular(4))),
+            child: DefaultTextStyle(
+              style: TextStyle(
+                  color: Color.fromRGBO(255, 255, 255, 0.9),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400),
+              child: Row(children: [
+                Text('${_duration2String(_fastPos)}'),
+                Text(' / '),
+                Text('${_duration2String(_duration)}'),
+              ]),
+            ),
+          )),
+    );
   }
 
   _qualityContainer() {
     List<Widget> widgets = [];
-    if (widget.sources == null) {
-      return widgets;
-    }
-    for (var i = 0; i < widget.sources.length; i++) {
-      var item = widget.sources[i];
+    for (var i = 0; i < _tracks.length; i++) {
       widgets.add(Expanded(
         flex: 1,
-        child: GestureDetector(
-          onTap: () async {
-            // await player.stop();
-            // await player.reset();
-            // await player.setDataSource(item['url'], autoPlay: true);
+        child:FlatButton(
+                      onPressed: () {
+            player.setTrack(i);
             setState(() {
               this._qulityIndex = i;
               this._hideStuff = true;
-              this._index = 0;
+              this._qulityShow = false;
             });
           },
           child: Container(
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(4)),
-            height: 60,
-            margin: const EdgeInsets.all(5),
-            child: Text('${item['title']}',
+            child: Text('${qulity[_tracks[i]]}',
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: _qulityIndex == i
@@ -416,31 +513,28 @@ class UIPanelPanelState extends State<UIPanel> {
     return widgets;
   }
 
-  _speedContainer() {
+  List<Widget> _speedContainer() {
     List<double> list = [0.75, 1, 1.25, 1.5, 2];
     List<Widget> widgets = [];
     list.forEach((speed) {
       widgets.add(Expanded(
         flex: 1,
-        child: GestureDetector(
-          onTap: () async {
+        child: FlatButton(
+          onPressed: () async {
             player.setSpeed(speed);
             setState(() {
               this._speed = speed;
               this._hideStuff = true;
-              this._index = 0;
+              this._speedShow = false;
             });
           },
           child: Container(
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(4)),
-            height: 60,
             margin: const EdgeInsets.all(5),
             child: Text('${speed}X',
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
+                    fontSize: 16,
                     color: _speed == speed
                         ? Theme.of(context).accentColor
                         : Colors.white)),
