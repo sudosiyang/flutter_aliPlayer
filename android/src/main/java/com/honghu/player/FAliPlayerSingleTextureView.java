@@ -136,8 +136,6 @@ public class FAliPlayerSingleTextureView implements PlatformView,
                 List<String> list = new ArrayList();
                 for(TrackInfo  i:info) {
                     list.add(i.getVodDefinition());
-                    System.out.println("==========");
-                    System.out.println(i.getVodDefinition());
                 }
                 result.success(list);
                 break;
@@ -311,7 +309,7 @@ public class FAliPlayerSingleTextureView implements PlatformView,
     public void onChangedSuccess(TrackInfo trackInfo) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("eventType", "onPlayerEvent");
-        map.put("values", 7);
+        map.put("values", 8);
         eventSink.success(map);
     }
 
@@ -319,7 +317,7 @@ public class FAliPlayerSingleTextureView implements PlatformView,
     public void onChangedFail(TrackInfo trackInfo, ErrorInfo errorInfo) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("eventType", "onPlayerEvent");
-        map.put("values", 8);
+        map.put("values", 9);
         eventSink.success(map);
     }
 }

@@ -27,16 +27,6 @@
 
         ///循环播放
         aliPlayer.loop = @([args[@"loop"] intValue]).boolValue;
-        if(args[@"vid"] != NSNull.null){
-            AVPVidAuthSource *source = [[AVPVidAuthSource alloc] init];
-            source.playAuth = args[@"playAuth"];
-            source.vid = args[@"vid"];
-            [aliPlayer setAuthSource:source];
-        }else{
-            AVPUrlSource *source = [[AVPUrlSource alloc] init];
-            source.playerUrl = [NSURL URLWithString:args[@"url"]];
-            [aliPlayer setUrlSource:source];
-        }
         [aliPlayer prepare];
         playerView = [UIView new];
         aliPlayer.playerView = playerView;
@@ -73,6 +63,18 @@
         [aliPlayer start];
     } else if ([call.method isEqualToString:@"pause"]) {
         [aliPlayer pause];
+    } else if ([call.method isEqualToString:@"getTrack"]) {
+        AVPMediaInfo* info = [aliPlayer getMediaInfo];
+        NSArray<AVPTrackInfo*>* tracks = info.tracks;
+        NSMutableArray *array = [NSMutableArray array];
+        for(AVPTrackInfo* obj in tracks){
+           [array addObject:obj.trackDefinition];
+        }
+        NSArray *myArray = [array copy];
+        result(myArray);
+    } else if ([call.method isEqualToString:@"setTrack"]) {
+        int index = (int) [call.arguments[@"index"] intValue];
+        [aliPlayer selectTrack:index];
     } else if ([call.method isEqualToString:@"seekTo"]) {
         int64_t time = (int64_t) [call.arguments[@"position"] intValue];
         [aliPlayer seekToTime:time seekMode:AVP_SEEKMODE_INACCURATE];
@@ -160,14 +162,22 @@
         });
     }
 }
-- (void)onTrackReady:(AliPlayer *)player info:(NSArray<AVPTrackInfo *> *)info {
-//    NSLog(@"onTrackReady :%d === %d", info[0].videoWidth,info[0].videoHeight);
-//    if(info[0].videoWidth<info[0].videoHeight){
-//        aliPlayer.scalingMode = AVP_SCALINGMODE_SCALEASPECTFILL;
-//    }else{
-//        aliPlayer.scalingMode = AVP_SCALINGMODE_SCALEASPECTFIT;
-//    }
+
+- (void)onLoadingProgress:(AliPlayer *)player progress:(float)progress{
+    eventSink(@{
+            @"eventType": @"onLoadingProcess",
+            @"percent": @(progress),
+            @"kbps": @(0),
+    });
 }
+
+- (void)onTrackChanged:(AliPlayer *)player info:(AVPTrackInfo *)info{
+    eventSink(@{
+            @"eventType": @"onPlayerEvent",
+            @"values": @(8)
+    });
+}
+
 - (void)onVideoSizeChanged:(AliPlayer *)player width:(int)width height:(int)height rotation:(int)rotation {
     eventSink(@{
             @"eventType": @"onVideoSizeChanged",

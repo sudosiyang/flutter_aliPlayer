@@ -34,6 +34,9 @@ enum AVPEventType {
   ///轨道切换成功*/
   AVPEventTrackChangeSuccess,
 
+  ///循环播放开始事件*/
+  AVPEventLoopingStart,
+
   ///轨道切换失败*/
   AVPEventTrackChangeFail,
 
