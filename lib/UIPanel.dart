@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:aliPlayer/Slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:aliPlayer/controller.dart';
@@ -28,7 +29,7 @@ class UIPanelPanelState extends State<UIPanel> {
   Duration _duration = Duration();
   Duration _currentPos = Duration();
   Duration _fastPos = Duration();
-
+  int _buffered = 0;
   // Duration _bufferPos = Duration();
   bool _playing = false;
   bool _prepared = false;
@@ -39,7 +40,7 @@ class UIPanelPanelState extends State<UIPanel> {
   StreamSubscription _stateEvent;
   StreamSubscription _positionEvent;
   StreamSubscription _playerEvent;
-
+  StreamSubscription _bufferPositionUpdate;
   Timer _hideTimer;
   bool _hideStuff = true;
   bool _speedShow = false;
@@ -50,7 +51,11 @@ class UIPanelPanelState extends State<UIPanel> {
   double _volume = 1.0;
   Map qulity = {"HD": '超清', "LD": '标清', "SD": '高清', "video": '高清'};
   final barHeight = 40.0;
-
+  static const AliSliderColors sliderColors = AliSliderColors(
+      cursorColor: Color(0xffffffff),
+      playedColor: Color(0xffFF5800),
+      baselineColor: Color.fromRGBO(255, 255, 255, 0.5),
+      bufferedColor: Color.fromRGBO(255, 255, 255, 0.8));
   @override
   void initState() {
     super.initState();
@@ -72,6 +77,11 @@ class UIPanelPanelState extends State<UIPanel> {
         _playing = event == AVPStatus.AVPStatusStarted;
         _prepared =
             player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
+      });
+    });
+    _bufferPositionUpdate = player.onBufferPositionUpdate.listen((buffer) {
+      setState(() {
+        _buffered = buffer;
       });
     });
     _playerEvent = player.onPlayEvent.listen((event) {
@@ -115,6 +125,7 @@ class UIPanelPanelState extends State<UIPanel> {
     _stateEvent?.cancel();
     _playerEvent?.cancel();
     _hideTimer?.cancel();
+    _bufferPositionUpdate?.cancel();
   }
 
   void _startHideTimer() {
@@ -148,7 +159,7 @@ class UIPanelPanelState extends State<UIPanel> {
         height: barHeight +
             (player.fullScreen
                 ? MediaQuery.of(context).padding.bottom + 20
-                : 20),
+                : 0),
         decoration: BoxDecoration(
             gradient: LinearGradient(colors: [
           Color(0xFF000000).withOpacity(0.0),
@@ -183,28 +194,13 @@ class UIPanelPanelState extends State<UIPanel> {
                     )
                   : Expanded(
                       child: Padding(
-                        padding: EdgeInsets.only(right: 0, left: 0),
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: Color(0xffFF5800),
-                            thumbColor: Colors.white,
-                            inactiveTrackColor:
-                                Color.fromRGBO(255, 255, 255, 0.5),
-                            overlayShape: RoundSliderOverlayShape(
-                              //可继承SliderComponentShape自定义形状
-                              overlayRadius: 10, //滑块外圈大小
-                            ),
-                            thumbShape: RoundSliderThumbShape(
-                              //可继承SliderComponentShape自定义形状
-                              disabledThumbRadius: 8, //禁用是滑块大小
-                              enabledThumbRadius: 8, //滑块大小
-                            ),
-                          ),
-                          child: Slider(
+                        padding: EdgeInsets.only(right: 0, left: 8),
+                        child: AliSlider(
+                            colors: sliderColors,
                             value: currentValue,
+                            cacheValue: _buffered.toDouble(),
                             min: 0.0,
                             max: duration,
-                            label: '$currentValue',
                             onChanged: (v) {
                               setState(() {
                                 _seekPos = v;
@@ -219,7 +215,6 @@ class UIPanelPanelState extends State<UIPanel> {
                               });
                             },
                           ),
-                        ),
                       ),
                     ),
 
