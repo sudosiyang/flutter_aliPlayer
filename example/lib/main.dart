@@ -18,6 +18,7 @@ class _MyAppState extends State<MyApp> {
   FAliPlayerView view;
   bool playing = true;
   bool fullScreen = false;
+  String a;
   @override
   void initState() {
     super.initState();
@@ -65,7 +66,7 @@ class _MyAppState extends State<MyApp> {
                   FAliPlayerView(controller: controller),
                   FlatButton(
                     child: Text(
-                      '下一个',
+                      a!=null?a:'下一个',
                       style: TextStyle(fontSize: 16),
                     ),
                     onPressed: () {

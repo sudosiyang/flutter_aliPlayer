@@ -229,6 +229,11 @@
 
 - (void)onError:(AliPlayer *)player errorModel:(AVPErrorModel *)errorModel {
     NSLog(@"onError:%@", errorModel.message);
+    eventSink(@{
+            @"eventType": @"onError",
+            @"msg": errorModel.message,
+            @"errorCode": @([errorModel code])
+    });
 }
 
 @end
