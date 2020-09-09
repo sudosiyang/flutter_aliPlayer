@@ -5,14 +5,6 @@ import 'dart:io';
 import 'event.dart';
 import 'innerView.dart';
 
-typedef FirstRenderedStartListener = void Function();
-
-
-///当前缓存进度更新
-typedef OnBufferedPositionUpdateListener = void Function(int position);
-
-
-
 ///大小改变回调
 typedef OnVideoSizeChanged = void Function();
 
@@ -44,6 +36,9 @@ enum AVPEventType {
 
   ///轨道切换失败*/
   AVPEventTrackChangeFail,
+
+  ///Player Created*/
+  AVPEventCreated,
 }
 enum AVPStatus {
   ///空转，闲时，静态
@@ -70,6 +65,12 @@ enum AVPStatus {
   /// 播放错误
   AVPStatusError
 }
+
+enum AVPScreenStatus{
+  FULLSCREEN,
+  NORMAL
+}
+
 enum AVPScalingMode {
   SCALETOFILL,
   SCALEASPECTFIT,
@@ -84,20 +85,19 @@ class LoadProcess{
   LoadProcess(this.percent,this.kbps);
 }
 /// 当前播放进度更新
-class CurrentPositionUpdate{
+class PlayerPosition{
   int position;
-  CurrentPositionUpdate(this.position);
+  PlayerPosition(this.position);
+}
+class BufferPosition{
+  int position;
+  BufferPosition(this.position);
 }
 
 class APError{
   int errorCode;
   String msg;
   APError({this.errorCode,this.msg});
-}
-/// 全屏时间
-class FullScreenChange{
-  bool isFs;
-  FullScreenChange(this.isFs);
 }
 
 
@@ -119,12 +119,8 @@ class APController {
   ///循环播放
   bool loop;
 
-  ///标记第一帧渲染成功,每次都切换新的视频都会标记为true
-  ///用到的地方需要手动标记为false，否则会一直为true
-  bool firstRenderedStart = false;
-
   /// 视频时长
-  Duration duration;
+  Duration duration = Duration();
 
   ///缓存配置
   // AVPCacheConfig cacheConfig;
@@ -139,9 +135,6 @@ class APController {
 
   int textureId;
 
-
-  OnBufferedPositionUpdateListener _bufferedPositionUpdateListener;
-
   OnVideoSizeChanged _onVideoSizeChanged;
 
 
@@ -150,14 +143,15 @@ class APController {
   /// 当前是否正在播放
   bool get isPlaying => currentStatus == AVPStatus.AVPStatusStarted;
 
-  void setBufferedPositionUpdateListener(
-      OnBufferedPositionUpdateListener value) {
-    _bufferedPositionUpdateListener = value;
-  }
-
   Stream<AVPEventType> get onPlayEvent => eventBus.on<AVPEventType>();
   Stream<AVPStatus> get onStatusEvent => eventBus.on<AVPStatus>();
-
+  Stream<int> get onPositionUpdate => eventBus.on<PlayerPosition>().transform(StreamTransformer.fromHandlers(handleData:(value, sink){
+    sink.add(value.position);
+  }));
+  Stream<int> get onBufferPositionUpdate => eventBus.on<BufferPosition>().transform(StreamTransformer.fromHandlers(handleData:(value, sink){
+    sink.add(value.position);
+  }));
+  Stream<AVPScreenStatus> get onFullScreenChange => eventBus.on<AVPScreenStatus>();
   /// 设置视频宽高变化监听
   setOnVideoSizeChanged(OnVideoSizeChanged listener) {
     this._onVideoSizeChanged = listener;
@@ -209,9 +203,6 @@ class APController {
         break;
       case "onPlayerStatusChanged":
         currentStatus = AVPStatus.values[event["values"]];
-        if (event["values"] == AVPStatus.AVPStatusStarted.index) {
-          firstRenderedStart = true;
-        }
         eventBus.fire(AVPStatus.values[(event["values"])]);
         break;
       case "onPrepared":
@@ -219,12 +210,10 @@ class APController {
         duration = new Duration(milliseconds: event['duration']);
         break;
       case "onCurrentPositionUpdate":
-        eventBus.fire(CurrentPositionUpdate(event["values"]));
+        eventBus.fire(PlayerPosition(event["values"]));
         break;
       case "onBufferedPositionUpdate":
-        if (this._bufferedPositionUpdateListener != null) {
-          this._bufferedPositionUpdateListener(event["values"]);
-        }
+        eventBus.fire(BufferPosition(event["values"]));
         break;
       case "onLoadingProcess":
         eventBus.fire(LoadProcess(event["percent"],event['kbps']));
@@ -259,13 +248,14 @@ class APController {
       if (isAutoPlay) {
         this.start();
       }
+      eventBus.fire(AVPEventType.AVPEventCreated);
     }
   }
 
   void enterFullScreen(context) {
     fullScreen = true;
     _pushFullScreenWidget(context);
-    eventBus.fire(FullScreenChange(fullScreen));
+    eventBus.fire(AVPScreenStatus.FULLSCREEN);
   }
 
   void exitFullScreen(context) async{
@@ -280,7 +270,7 @@ class APController {
       Navigator.of(context).pop();
     }
     fullScreen = false;
-    eventBus.fire(FullScreenChange(fullScreen));
+    eventBus.fire(AVPScreenStatus.NORMAL);
   }
 
   Future<dynamic> _pushFullScreenWidget(BuildContext context) async {

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:aliPlayer/event.dart';
 
 import 'UIPanel.dart';
 import 'controller.dart';
@@ -20,28 +19,12 @@ class FAliPlayerView extends StatefulWidget {
 }
 
 class _FAliPlayerViewState extends State<FAliPlayerView> {
-  bool prepared = false;
   Widget platformView;
-  StreamSubscription _stateEvent;
   StreamSubscription _fullScreenEvent;
   @override
   void initState() {
     super.initState();
-    widget.controller.onPlayEvent.listen((event) {
-      if (widget.controller.firstRenderedStart) {
-        setState(() {});
-        widget.controller.firstRenderedStart = false;
-      }
-    });
-
-    _stateEvent = widget.controller.onPlayEvent.listen((event) {
-      if (event == AVPEventType.AVPEventPrepareDone) {
-        setState(() {
-          prepared = true;
-        });
-      }
-    });
-    _fullScreenEvent = widget.controller.eventBus.on<FullScreenChange>().listen((event) {
+    _fullScreenEvent = widget.controller.onFullScreenChange.listen((event) {
       setState(() {});
     });
   }
@@ -49,7 +32,6 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
   @override
   void dispose() {
     super.dispose();
-    _stateEvent?.cancel();
     _fullScreenEvent?.cancel();
   }
 
@@ -98,9 +80,7 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
                                 "loop": widget.controller.loop,
                               },
                             )),
-                  !prepared
-                      ? Container()
-                      : UIPanel(
+                  UIPanel(
                           player: widget.controller,
                           viewSize: Size(width, height),
                         )

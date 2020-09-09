@@ -33,16 +33,11 @@ class UIPanelPanelState extends State<UIPanel> {
   bool _prepared = false;
   String _exception;
 
-  // bool _buffering = false;
-
   double _seekPos = -1.0;
 
   StreamSubscription _stateEvent;
   StreamSubscription _positionEvent;
-  // StreamSubscription _currentPosSubs;
-
-  //StreamSubscription _bufferPosSubs;
-  //StreamSubscription _bufferingSubs;
+  StreamSubscription _playerEvent;
 
   Timer _hideTimer;
   bool _hideStuff = true;
@@ -56,21 +51,26 @@ class UIPanelPanelState extends State<UIPanel> {
   @override
   void initState() {
     super.initState();
-    _duration = player.duration;
     _currentPos = new Duration(milliseconds: 0);
-    _prepared = player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
     _playing = player.currentStatus == AVPStatus.AVPStatusStarted;
-
     _positionEvent =
-        player.eventBus.on<CurrentPositionUpdate>().listen((event) {
+        player.onPositionUpdate.listen((position) {
       setState(() {
-        _currentPos = Duration(milliseconds: event.position); //position;
+        _currentPos = Duration(milliseconds: position); //position;
       });
     });
     _stateEvent = player.onStatusEvent.listen((event) {
       setState(() {
         _playing = event == AVPStatus.AVPStatusStarted;
+        _prepared = player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
       });
+    });
+    _playerEvent = player.onPlayEvent.listen((event) {
+      if (event == AVPEventType.AVPEventPrepareDone) {
+        setState(() {
+          _duration = player.duration;
+        });
+      }
     });
   }
 
@@ -87,6 +87,7 @@ class UIPanelPanelState extends State<UIPanel> {
     super.dispose();
     _positionEvent?.cancel();
     _stateEvent?.cancel();
+    _playerEvent?.cancel();
     _hideTimer?.cancel();
   }
 
