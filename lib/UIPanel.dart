@@ -475,7 +475,8 @@ class UIPanelPanelState extends State<UIPanel> {
   _fastBox() {
     return Positioned(
       top: widget.viewSize.height / 2 - 20,
-      left: widget.viewSize.width / 2 - 60,
+      left: MediaQuery.of(context).size.width / 2 - 60,
+      width: 120,
       child: Offstage(
           offstage: !_showFastbox,
           child: Container(
