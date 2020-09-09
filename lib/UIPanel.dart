@@ -45,15 +45,10 @@ class UIPanelPanelState extends State<UIPanel> {
   bool _speedShow = false;
   bool _qulityShow = false;
   double _speed = 1;
-  List _tracks= [];
+  List _tracks = [];
   int _qulityIndex = 0;
   double _volume = 1.0;
-  Map qulity = {
-    "HD":'超清',
-    "LD":'标清',
-    "SD":'高清',
-    "video":'高清'
-  };
+  Map qulity = {"HD": '超清', "LD": '标清', "SD": '高清', "video": '高清'};
   final barHeight = 40.0;
 
   @override
@@ -81,25 +76,25 @@ class UIPanelPanelState extends State<UIPanel> {
     });
     _playerEvent = player.onPlayEvent.listen((event) {
       print(event);
-      switch(event){
+      switch (event) {
         case AVPEventType.AVPEventPrepareDone:
           setState(() {
-          _duration = player.duration;
-        });
-        Future.delayed(Duration(milliseconds: 400),(){
-          setState(() {
-            _tracks = player.tracks;
+            _duration = player.duration;
           });
-        });
-        break;
+          Future.delayed(Duration(milliseconds: 400), () {
+            setState(() {
+              _tracks = player.tracks;
+            });
+          });
+          break;
         case AVPEventType.AVPEventLoadingStart:
-        setState(() {
-          _prepared = false;
-        });
-        break;
+          setState(() {
+            _prepared = false;
+          });
+          break;
         case AVPEventType.AVPEventLoadingEnd:
           _prepared = true;
-        break;
+          break;
         default:
       }
     });
@@ -258,7 +253,7 @@ class UIPanelPanelState extends State<UIPanel> {
                   ? FlatButton(
                       textColor: Colors.white,
                       onPressed: () {
-                        this._qulityShow=true;
+                        this._qulityShow = true;
                       },
                       child: Container(
                         margin: const EdgeInsets.only(left: 5, right: 5),
@@ -375,14 +370,12 @@ class UIPanelPanelState extends State<UIPanel> {
               },
               onHorizontalDragUpdate: (DragUpdateDetails detail) {
                 setState(() {
-                  int res=_fastPos.inMilliseconds +
-                          detail.delta.dx.toInt() * 1000;
-                  if(res<=0){
-                    _fastPos = Duration(
-                        milliseconds:0);
-                  }else if(res < _duration.inMilliseconds){
-                    _fastPos = Duration(
-                        milliseconds:res);
+                  int res =
+                      _fastPos.inMilliseconds + detail.delta.dx.toInt() * 1000;
+                  if (res <= 0) {
+                    _fastPos = Duration(milliseconds: 0);
+                  } else if (res < _duration.inMilliseconds) {
+                    _fastPos = Duration(milliseconds: res);
                   }
                 });
               },
@@ -434,32 +427,35 @@ class UIPanelPanelState extends State<UIPanel> {
                         },
                         child: Container(
                           color: Colors.transparent,
-                          child: Center(child:_prepared
-                              ? AnimatedOpacity(
-                                  opacity: _hideStuff ? 0.0 : 0.7,
-                                  duration: Duration(milliseconds: 400),
-                                  child: IconButton(
-                                      iconSize: barHeight * 2,
-                                      icon: ImageIcon(
-                                          !_playing
-                                              ? AssetImage('images/play.png',
-                                                  package: "aliPlayer")
-                                              : AssetImage('images/pause.png',
-                                                  package: "aliPlayer"),
-                                          color: _playing
-                                              ? Colors.transparent
-                                              : Colors.white),
-                                      padding: EdgeInsets.only(
-                                          left: 10.0, right: 10.0),
-                                      onPressed: _playOrPause))
-                              : SizedBox(
-                                  width: barHeight,
-                                  height: barHeight,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation(Colors.white)),
-                                )),
+                          child: Center(
+                              child: _prepared
+                                  ? AnimatedOpacity(
+                                      opacity: _hideStuff ? 0.0 : 0.7,
+                                      duration: Duration(milliseconds: 400),
+                                      child: IconButton(
+                                          iconSize: barHeight * 2,
+                                          icon: ImageIcon(
+                                              !_playing
+                                                  ? AssetImage(
+                                                      'images/play.png',
+                                                      package: "aliPlayer")
+                                                  : AssetImage(
+                                                      'images/pause.png',
+                                                      package: "aliPlayer"),
+                                              color: _playing
+                                                  ? Colors.transparent
+                                                  : Colors.white),
+                                          padding: EdgeInsets.only(
+                                              left: 10.0, right: 10.0),
+                                          onPressed: _playOrPause))
+                                  : SizedBox(
+                                      width: barHeight,
+                                      height: barHeight,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(
+                                              Colors.white)),
+                                    )),
                         ),
                       ),
                     ),
@@ -483,20 +479,25 @@ class UIPanelPanelState extends State<UIPanel> {
       child: Offstage(
           offstage: !_showFastbox,
           child: Container(
+            width: 120,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             decoration: BoxDecoration(
                 color: Color.fromRGBO(0, 0, 0, 0.7),
                 borderRadius: BorderRadius.all(Radius.circular(4))),
-            child: DefaultTextStyle(
-              style: TextStyle(
-                  color: Color.fromRGBO(255, 255, 255, 0.9),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400),
-              child: Row(children: [
-                Text('${_duration2String(_fastPos)}'),
-                Text(' / '),
-                Text('${_duration2String(_duration)}'),
-              ]),
+            child: FittedBox(
+              fit: BoxFit.contain,
+              alignment: Alignment.center,
+              child: DefaultTextStyle(
+                style: TextStyle(
+                    color: Color.fromRGBO(255, 255, 255, 0.9),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400),
+                child: Row(children: [
+                  Text('${_duration2String(_fastPos)}'),
+                  Text(' / '),
+                  Text('${_duration2String(_duration)}'),
+                ]),
+              ),
             ),
           )),
     );
@@ -507,8 +508,8 @@ class UIPanelPanelState extends State<UIPanel> {
     for (var i = 0; i < _tracks.length; i++) {
       widgets.add(Expanded(
         flex: 1,
-        child:FlatButton(
-                      onPressed: () {
+        child: FlatButton(
+          onPressed: () {
             player.setTrack(i);
             setState(() {
               this._qulityIndex = i;
