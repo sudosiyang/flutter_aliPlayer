@@ -54,7 +54,6 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
         height = width / widget.controller.width * widget.controller.height;
       }
     }
-    print(Size(width,height));
     double aspectRatio = widget.controller.height != null
         ? widget.controller.width / widget.controller.height
         : 16 / 9;

@@ -423,7 +423,6 @@ class UIPanelPanelState extends State<UIPanel> {
                 }
               },
               onHorizontalDragStart: (_) {
-                print('onHorizontalDragStart');
                 _fastPos = _currentPos;
                 setState(() {
                   _showFastbox = true;
