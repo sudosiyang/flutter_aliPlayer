@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:aliPlayer/Slider.dart';
@@ -528,10 +529,13 @@ class UIPanelPanelState extends State<UIPanel> {
 
   // 快进快退显示
   _fastBox() {
+    int boxWidth= player.fullScreen ? 160: 100;
+    double boxHeight= player.fullScreen ? 40: 30;
     return Positioned(
         top: widget.viewSize.height / 2 - 20,
-        left: MediaQuery.of(context).size.width / 2 - 60,
-        width: 120,
+        left: MediaQuery.of(context).size.width / 2 - boxWidth/2,
+        width: boxWidth.toDouble(),
+        height: boxHeight,
         child: IgnorePointer(
           child:AnimatedOpacity(
           opacity: _showFastbox ? 1 : 0,

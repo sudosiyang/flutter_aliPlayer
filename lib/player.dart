@@ -40,6 +40,10 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
             widget.controller.height *
             widget.controller.width
         : MediaQuery.of(context).size.width;
+
+    if(Platform.isIOS&&widget.controller.fullScreen){
+      width=MediaQuery.of(context).size.width;
+    }
     double height;
     if (widget.controller.fullScreen) {
       height = MediaQuery.of(context).size.height;
@@ -50,6 +54,7 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
         height = width / widget.controller.width * widget.controller.height;
       }
     }
+    print(Size(width,height));
     double aspectRatio = widget.controller.height != null
         ? widget.controller.width / widget.controller.height
         : 16 / 9;
@@ -61,25 +66,27 @@ class _FAliPlayerViewState extends State<FAliPlayerView> {
           color: Colors.black,
           child: Stack(
             children: <Widget>[
-              new AspectRatio(
-                  aspectRatio: aspectRatio,
-                  child: Platform.isAndroid
-                      ? AndroidView(
-                          viewType: "plugin.honghu.com/ali_video_play_single_",
-                          creationParamsCodec: const StandardMessageCodec(),
-                          onPlatformViewCreated: widget.controller.onViewCreate,
-                          creationParams: <String, dynamic>{
-                            "loop": widget.controller.loop
-                          },
-                        )
-                      : UiKitView(
-                          viewType: "plugin.honghu.com/ali_video_play_single_",
-                          creationParamsCodec: const StandardMessageCodec(),
-                          onPlatformViewCreated: widget.controller.onViewCreate,
-                          creationParams: <String, dynamic>{
-                            "loop": widget.controller.loop,
-                          },
-                        )),
+              Center(
+                child: new AspectRatio(
+                    aspectRatio: aspectRatio,
+                    child: Platform.isAndroid
+                        ? AndroidView(
+                            viewType: "plugin.honghu.com/ali_video_play_single_",
+                            creationParamsCodec: const StandardMessageCodec(),
+                            onPlatformViewCreated: widget.controller.onViewCreate,
+                            creationParams: <String, dynamic>{
+                              "loop": widget.controller.loop
+                            },
+                          )
+                        : UiKitView(
+                            viewType: "plugin.honghu.com/ali_video_play_single_",
+                            creationParamsCodec: const StandardMessageCodec(),
+                            onPlatformViewCreated: widget.controller.onViewCreate,
+                            creationParams: <String, dynamic>{
+                              "loop": widget.controller.loop,
+                            },
+                          )),
+              ),
               UIPanel(
                 player: widget.controller,
                 viewSize: Size(width, height),
