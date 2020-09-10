@@ -6,10 +6,16 @@ PODS:
     - AliPlayerSDK_iOS/AliPlayerSDK (= 5.1.2)
   - AliPlayerSDK_iOS/AliPlayerSDK (5.1.2)
   - Flutter (1.0.0)
+  - screen (0.0.1):
+    - Flutter
+  - volume_control (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - aliPlayer (from `.symlinks/plugins/aliPlayer/ios`)
   - Flutter (from `Flutter`)
+  - screen (from `.symlinks/plugins/screen/ios`)
+  - volume_control (from `.symlinks/plugins/volume_control/ios`)
 
 SPEC REPOS:
   trunk:
@@ -20,11 +26,17 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/aliPlayer/ios"
   Flutter:
     :path: Flutter
+  screen:
+    :path: ".symlinks/plugins/screen/ios"
+  volume_control:
+    :path: ".symlinks/plugins/volume_control/ios"
 
 SPEC CHECKSUMS:
   aliPlayer: 30cb1bc39d752a8a7f42b3cff7fdecbe16a0c5a1
   AliPlayerSDK_iOS: 535b2c8525e6ec5fb9bcb4d5fd75eda9e3ec0763
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  screen: abd91ca7bf3426e1cc3646d27e9b2358d6bf07b0
+  volume_control: ae2b373c092d9ff5e57f704e9fa5e3098cc16d07
 
 PODFILE CHECKSUM: c34e2287a9ccaa606aeceab922830efb9a6ff69a
 

@@ -148,6 +148,7 @@ class APController {
 
   Stream<AVPEventType> get onPlayEvent => eventBus.on<AVPEventType>();
   Stream<AVPStatus> get onStatusEvent => eventBus.on<AVPStatus>();
+  Stream<LoadProcess> get onLoadProcess => eventBus.on<LoadProcess>();
   Stream<int> get onPositionUpdate => eventBus.on<PlayerPosition>().transform(StreamTransformer.fromHandlers(handleData:(value, sink){
     sink.add(value.position);
   }));

@@ -43,15 +43,18 @@ class UIPanelPanelState extends State<UIPanel> {
   StreamSubscription _positionEvent;
   StreamSubscription _playerEvent;
   StreamSubscription _bufferPositionUpdate;
+  StreamSubscription _processListen;
   Timer _hideTimer;
   bool _hideStuff = true;
   bool _speedShow = false;
   bool _qulityShow = false;
+  bool _showSound = false;
   double _speed = 1;
   List _tracks = [];
   int _qulityIndex = 0;
-  double _volume;
-  double _brightness;
+  double _volume = 0;
+  double _brightness=0;
+  int _processPercent = 0;
   int _changeState;
   Map qulity = {"HD": '超清', "LD": '标清', "SD": '高清', "video": '高清'};
   final barHeight = 40.0;
@@ -63,6 +66,11 @@ class UIPanelPanelState extends State<UIPanel> {
   @override
   void initState() {
     super.initState();
+    VolumeControl.volume.then((value){
+      setState(() {
+        _volume = value;
+      });
+    });
     _currentPos = new Duration(milliseconds: 0);
     _playing = player.currentStatus == AVPStatus.AVPStatusStarted;
     _duration = player.duration;
@@ -71,6 +79,13 @@ class UIPanelPanelState extends State<UIPanel> {
       _prepared =
           player.currentStatus.index >= AVPStatus.AVPStatusPrepared.index;
     }
+  
+    _processListen = player.onLoadProcess.listen((event) { 
+      setState(() {
+        _processPercent = event.percent;
+      });
+    });
+
     _positionEvent = player.onPositionUpdate.listen((position) {
       setState(() {
         _currentPos = Duration(milliseconds: position); //position;
@@ -103,6 +118,7 @@ class UIPanelPanelState extends State<UIPanel> {
         case AVPEventType.AVPEventLoadingStart:
           setState(() {
             _prepared = false;
+            _processPercent=0;
           });
           break;
         case AVPEventType.AVPEventLoadingEnd:
@@ -128,6 +144,7 @@ class UIPanelPanelState extends State<UIPanel> {
     _stateEvent?.cancel();
     _playerEvent?.cancel();
     _hideTimer?.cancel();
+    _processListen?.cancel();
     _bufferPositionUpdate?.cancel();
   }
 
@@ -360,6 +377,9 @@ class UIPanelPanelState extends State<UIPanel> {
           height: widget.viewSize.height,
           child: Stack(children: [
             GestureDetector(
+              onDoubleTap:(){
+                this._playOrPause();
+              },
               onVerticalDragStart: (DragStartDetails detail) async {
                 if (detail.localPosition.dx <
                     MediaQuery.of(context).size.width / 2) {
@@ -370,7 +390,15 @@ class UIPanelPanelState extends State<UIPanel> {
                   _volume = await VolumeControl.volume;
                 }
               },
+              onVerticalDragEnd: (_){
+                setState(() {
+                  _showSound = false;
+                });
+              },
               onVerticalDragUpdate: (DragUpdateDetails detail) {
+                setState(() {
+                  _showSound = true;
+                });
                 if (_changeState == 1) {
                   double brightness = _brightness - (detail.delta.dy / 100);
                   if (brightness < 0.01) {
@@ -461,33 +489,27 @@ class UIPanelPanelState extends State<UIPanel> {
                           color: Colors.transparent,
                           child: Center(
                               child: _prepared
-                                  ? AnimatedOpacity(
-                                      opacity: _hideStuff ? 0.0 : 0.7,
-                                      duration: Duration(milliseconds: 400),
-                                      child: IconButton(
-                                          iconSize: barHeight * 2,
-                                          icon: ImageIcon(
-                                              !_playing
-                                                  ? AssetImage(
-                                                      'images/play.png',
-                                                      package: "aliPlayer")
-                                                  : AssetImage(
-                                                      'images/pause.png',
-                                                      package: "aliPlayer"),
-                                              color: _playing
-                                                  ? Colors.transparent
-                                                  : Colors.white),
-                                          padding: EdgeInsets.only(
-                                              left: 10.0, right: 10.0),
-                                          onPressed: _playOrPause))
-                                  : SizedBox(
-                                      width: barHeight,
-                                      height: barHeight,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation(
-                                              Colors.white)),
-                                    )),
+                                  ? Container()
+                                  : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      SizedBox(
+                                          width: 30,
+                                          height: 30,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation(
+                                                  Colors.white)),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(top:8.0),
+                                          child: Text(_processPercent.toString()+'%',style: TextStyle(
+                                            color:Colors.white
+                                          ),),
+                                        )
+                                    ],
+                                  )),
                         ),
                       ),
                     ),
@@ -496,7 +518,8 @@ class UIPanelPanelState extends State<UIPanel> {
                 ),
               ),
             ),
-            _fastBox()
+            _fastBox(),
+            _soundAndBrignt()
           ])),
       _speedPanel(_speedContainer()),
       _quiltyPanel(_qualityContainer())
@@ -506,11 +529,13 @@ class UIPanelPanelState extends State<UIPanel> {
   // 快进快退显示
   _fastBox() {
     return Positioned(
-      top: widget.viewSize.height / 2 - 20,
-      left: MediaQuery.of(context).size.width / 2 - 60,
-      width: 120,
-      child: Offstage(
-          offstage: !_showFastbox,
+        top: widget.viewSize.height / 2 - 20,
+        left: MediaQuery.of(context).size.width / 2 - 60,
+        width: 120,
+        child: IgnorePointer(
+          child:AnimatedOpacity(
+          opacity: _showFastbox ? 1 : 0,
+          duration: Duration(milliseconds: 200),
           child: Container(
             width: 120,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -532,7 +557,55 @@ class UIPanelPanelState extends State<UIPanel> {
                 ]),
               ),
             ),
-          )),
+          ),
+        ),
+      ),
+    );
+  }
+  _soundAndBrignt() {
+    return Positioned(
+        top: widget.viewSize.height / 2 - 20,
+        left: MediaQuery.of(context).size.width / 2 - 80,
+        width: 160,
+        child: IgnorePointer(
+          child: AnimatedOpacity(
+          opacity: _showSound ? 1 : 0,
+          duration: Duration(milliseconds: 200),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            decoration: BoxDecoration(
+                color: Color.fromRGBO(0, 0, 0, 0.7),
+                borderRadius: BorderRadius.all(Radius.circular(4))),
+            child: FittedBox(
+              fit: BoxFit.contain,
+              alignment: Alignment.center,
+              child: Row(children: [
+                  ImageIcon(AssetImage(_changeState==1?'images/brightness.png':'images/sound.png',package: 'aliPlayer'),color: Color.fromRGBO(255, 255, 255, 0.8),size: 40,),
+                  Container(
+                    margin: EdgeInsets.only(left:8),
+                    child: Stack(
+                      children:[
+                        Container(
+                          height:4,
+                          width:160,
+                          color:Color.fromRGBO(255, 255, 255, 0.8)
+                        ),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Container(
+                          height:4,
+                          width:160*(_changeState==1?_brightness:_volume),
+                          color:Color(0xffFF5800)
+                        ))
+                      ]
+                    ),
+                  )
+                ]),
+              ),
+          ),
+        ),
+      ),
     );
   }
 
